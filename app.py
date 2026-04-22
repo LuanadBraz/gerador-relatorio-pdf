@@ -3,8 +3,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
-from reportlab.platypus import Paragraph
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -134,25 +132,26 @@ def draw_card(c, x, y, w, h, titulo, valor):
 
 
 def draw_insights(c, x, y_top, width, texto):
-    styles = getSampleStyleSheet()
+    # Título
+    c.setFillColor(colors.HexColor("#264a73"))
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(x, y_top, "ANÁLISE DE PERFORMANCE")
 
-    title_style = ParagraphStyle(
-        "title_style",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=11,
-        textColor=colors.HexColor("#264a73"),
-        leading=13,
-    )
+    # Texto
+    c.setFillColor(colors.HexColor("#1f2937"))
+    c.setFont("Helvetica", 9)
 
-    body_style = ParagraphStyle(
-        "body_style",
-        parent=styles["Normal"],
-        fontName="Helvetica",
-        fontSize=9,
-        textColor=colors.HexColor("#1f2937"),
-        leading=12,
-    )
+    linhas = [linha.strip() for linha in texto.splitlines() if linha.strip()]
+    if not linhas:
+        linhas = ["Nenhum insight informado."]
+
+    y = y_top - 8 * mm
+    espacamento = 5 * mm
+
+    for linha in linhas:
+        texto_linha = f"• {linha}"
+        c.drawString(x, y, texto_linha)
+        y -= espacamento
 
     titulo = Paragraph("ANÁLISE DE PERFORMANCE", title_style)
     _, th = titulo.wrap(width, 20 * mm)
