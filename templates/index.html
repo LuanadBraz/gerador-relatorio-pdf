@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Relatório Mensal - Afiliado</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #eef1f5;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: 28px auto;
+            padding: 0 18px;
+        }
+
+        .card {
+            background: #f8fafc;
+            border: 1px solid #d9dee7;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        /* LOGO */
+        .brand {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .logo {
+            max-height: 55px;
+            width: auto;
+            max-width: 220px;
+            object-fit: contain;
+            display: block;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: #264a73;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            margin: 0 0 18px 0;
+            color: #4b5563;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .flash-messages {
+            margin-bottom: 18px;
+        }
+
+        .flash {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #d79b33;
+            margin-bottom: 14px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+           
+            
+            font-size: 15px;
+            outline: none;
+        }
+		
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .btn-row {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        button {
+            background: #264a73;
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .month-card {
+            background: #ffffff;
+            border: 1px solid #d9dee7;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .month-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #264a73;
+            margin-bottom: 12px;
+        }
+
+        .summary-box {
+            background: #f3f6fa;
+            border: 1px solid #d9dee7;
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                max-height: 45px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="card">
+
+        <!-- LOGO -->
+        <div class="brand">
+            <img src="{{ url_for('static', filename='Logonova.png') }}" class="logo">
+        </div>
+
+        <h1>Gerador de Relatório Mensal em PDF</h1>
+
+        <p class="subtitle">
+            Preencha o formulário abaixo. Ao clicar no botão, o sistema vai gerar o PDF automaticamente.
+        </p>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form action="/gerar-pdf" method="POST">
+
+            <!-- DADOS -->
+            <section>
+                <div class="section-title">1) Dados principais</div>
+
+                <div class="grid grid-3">
+                    <div class="field">
+                        <label>Nome do afiliado / empresa</label>
+                        <input type="text" name="affiliate_name" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Período</label>
+                        <input type="text" name="period" placeholder="01/03/2026 a 31/03/2026" required>
+                    </div>
+
+                    <div class="field">
+                        <label>Data de atualização</label>
+                        <input type="text" name="update_date" value="{{ today }}" required>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RESUMO -->
+            <section>
+                <div class="section-title">2) Resumo financeiro</div>
+
+                <div class="summary-box">
+                    <div class="grid grid-2">
+
+                        <div class="field">
+                            <label>GGR</label>
+                            <input type="text" name="ggr">
+                        </div>
+
+                        <div class="field">
+                            <label>Comissão</label>
+                            <input type="text" name="comissao">
+                        </div>
+
+                        <div class="field">
+                            <label>Novos jogadores</label>
+                            <input type="text" name="novos_jogadores">
+                        </div>
+
+                        <div class="field">
+                            <label>Jogadores mês anterior</label>
+                            <input type="text" name="jogadores_anterior">
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- MESES -->
+            <section>
+                <div class="section-title">3) Gráfico dos meses</div>
+
+                <div class="field">
+                    <label>Quantidade de meses</label>
+                    <select id="num_meses" name="num_meses">
+                        <option value="selecione"selected>Selecione</option>
+                        <option value="2">2 meses</option>
+                        <option value="3">3 meses</option>
+                        <option value="4">4 meses</option>
+                        <option value="5">5 meses</option>
+                        <option value="6">6 meses</option>
+                        <option value="7">7 meses</option>
+                        <option value="8">8 meses</option>
+                    </select>
+                </div>
+
+                <div id="meses-container"></div>
+            </section>
+
+            <!-- INSIGHTS -->
+            <section>
+                <div class="section-title">4) Análise de Performance</div>
+
+                <div class="field">
+                    <textarea name="insights"></textarea>
+					<span class="hint">
+						* Caso não queira o preenchimento, o sistema irá gerar automaticamente as observações.
+                    </span>
+                </div>
+            </section>
+
+            <div class="btn-row">
+                <button type="submit">Gerar PDF</button>
+            </div>
+
+        </form>
+		 
+
+    </div>
+</div>
+
+<script>
+const container = document.getElementById("meses-container");
+const selectMeses = document.getElementById("num_meses");
+
+function renderMeses() {
+    const quantidade = parseInt(selectMeses.value);
+    container.innerHTML = "";
+
+    for (let i = 0; i < quantidade; i++) {
+        const bloco = document.createElement("div");
+        bloco.className = "month-card";
+
+        bloco.innerHTML = `
+            <div class="month-title">Mês ${i+1}</div>
+
+
+    <div class="grid grid-3">
+
+        <select name="mes_${i}">
+            <option value="">Selecione o mês</option>
+            <option value="JAN">JAN</option>
+            <option value="FEV">FEV</option>
+            <option value="MAR">MAR</option>
+            <option value="ABR">ABR</option>
+            <option value="MAI">MAI</option>
+            <option value="JUN">JUN</option>
+            <option value="JUL">JUL</option>
+            <option value="AGO">AGO</option>
+            <option value="SET">SET</option>
+            <option value="OUT">OUT</option>
+            <option value="NOV">NOV</option>
+            <option value="DEZ">DEZ</option>
+        </select>
+
+        <input name="ggr_${i}" placeholder="GGR">
+        <input name="receita_${i}" placeholder="Receita">
+
+    </div>
+        `;
+
+        container.appendChild(bloco);
+    }
+}
+
+selectMeses.addEventListener("change", renderMeses);
+renderMeses();
+</script>
+
+</body>
+</html>
