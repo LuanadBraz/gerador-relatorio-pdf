@@ -393,6 +393,8 @@ def gerar_pdf():
         return send_file(pdf_path, as_attachment=True, download_name="relatorio_mensal.pdf")
 
     except Exception as e:
+        print("ERRO AO GERAR PDF:")
+        traceback.print_exc()
         flash(f"Erro ao gerar PDF: {str(e)}")
         return redirect(url_for("index"))
 
