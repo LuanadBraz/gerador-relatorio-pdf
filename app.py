@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import os
 import uuid
 from datetime import datetime
+import traceback
 
 app = Flask(__name__)
 app.secret_key = "relatorio"
