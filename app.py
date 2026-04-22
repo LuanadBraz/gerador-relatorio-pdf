@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, send_file, redirect, url_for,
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
+from reportlab.platypus import Paragraph
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfgen import canvas
 import matplotlib
 matplotlib.use("Agg")
@@ -18,6 +20,29 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# =========================
+# ESTILOS GLOBAIS
+# =========================
+styles = getSampleStyleSheet()
+
+title_style = ParagraphStyle(
+    "title_style",
+    parent=styles["Heading2"],
+    fontName="Helvetica-Bold",
+    fontSize=11,
+    leading=13,
+    textColor=colors.HexColor("#264a73"),
+    spaceAfter=4,
+)
+
+body_style = ParagraphStyle(
+    "body_style",
+    parent=styles["Normal"],
+    fontName="Helvetica",
+    fontSize=9,
+    leading=12,
+    textColor=colors.HexColor("#1f2937"),
+)
 
 def parse_valor(valor):
     if not valor:
@@ -110,6 +135,7 @@ def draw_period_table(c, x, y_top, width, periodo, data_atualizacao):
     c.drawString(x + 4 * mm, y_top - 2 * row_h + 2.7 * mm, "Data de Atualização")
 
     c.setFillColor(colors.HexColor("#1f2937"))
+    c.setFont("Helvetica", 9)
     c.drawString(x + label_w + 4 * mm, y_top - row_h + 2.7 * mm, periodo)
     c.drawString(x + label_w + 4 * mm, y_top - 2 * row_h + 2.7 * mm, data_atualizacao)
 
@@ -132,27 +158,6 @@ def draw_card(c, x, y, w, h, titulo, valor):
 
 
 def draw_insights(c, x, y_top, width, texto):
-    # Título
-    c.setFillColor(colors.HexColor("#264a73"))
-    c.setFont("Helvetica-Bold", 11)
-    c.drawString(x, y_top, "ANÁLISE DE PERFORMANCE")
-
-    # Texto
-    c.setFillColor(colors.HexColor("#1f2937"))
-    c.setFont("Helvetica", 9)
-
-    linhas = [linha.strip() for linha in texto.splitlines() if linha.strip()]
-    if not linhas:
-        linhas = ["Nenhum insight informado."]
-
-    y = y_top - 8 * mm
-    espacamento = 5 * mm
-
-    for linha in linhas:
-        texto_linha = f"• {linha}"
-        c.drawString(x, y, texto_linha)
-        y -= espacamento
-
     titulo = Paragraph("ANÁLISE DE PERFORMANCE", title_style)
     _, th = titulo.wrap(width, 20 * mm)
     titulo.drawOn(c, x, y_top - th)
@@ -163,7 +168,7 @@ def draw_insights(c, x, y_top, width, texto):
 
     corpo_html = "<br/>".join([f"• {linha}" for linha in linhas])
     corpo = Paragraph(corpo_html, body_style)
-    _, bh = corpo.wrap(width, 35 * mm)
+    _, bh = corpo.wrap(width, 40 * mm)
     corpo.drawOn(c, x, y_top - th - 4 * mm - bh)
 
 
@@ -268,23 +273,16 @@ def gerar_pdf():
             flash("Adicione pelo menos 2 meses para gerar o gráfico.")
             return redirect(url_for("index"))
 
-        # Cálculos automáticos
         ggr = ggr_form if ggr_form > 0 else sum(lista_ggr)
-
-        # Regra de negócio definida por você:
-        # Receita líquida = Comissão
         receita_liquida = comissao
 
-        # Ticket médio = Receita líquida / Novos jogadores
         if novos_jogadores > 0:
             ticket_medio = receita_liquida / novos_jogadores
         else:
             ticket_medio = 0.0
 
-        # Crescimento = Novos jogadores atual vs jogadores mês anterior
         crescimento = calcular_crescimento_percentual(novos_jogadores, jogadores_anterior)
 
-        # Análise automática
         if insights_digitados:
             insights = insights_digitados
         else:
@@ -353,7 +351,7 @@ def gerar_pdf():
         draw_card(c, x2, y_row1, card_w, card_h, "GGR", formatar_moeda(ggr))
         draw_card(c, x3, y_row1, card_w, card_h, "Comissão", formatar_moeda(comissao))
 
-        jogadores_txt = str(int(novos_jogadores)) if novos_jogadores.is_integer() else str(novos_jogadores)
+        jogadores_txt = str(int(novos_jogadores)) if float(novos_jogadores).is_integer() else str(novos_jogadores)
 
         draw_card(c, x1, y_row2, card_w, card_h, "Ticket Médio", formatar_moeda(ticket_medio))
         draw_card(c, x2, y_row2, card_w, card_h, "Novos Jogadores", jogadores_txt)
